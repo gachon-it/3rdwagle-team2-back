@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser'); 
+const bodyParser = require('body-parser');
+const path = require('path');
+
 const db = require('./models');
 const cors = require('cors'); // ✅ CORS 추가
 
@@ -24,6 +26,7 @@ app.use(cors({
     credentials: true, // 쿠키 허용 시 필요
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // 허용할 HTTP 메서드
 }));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 
 const PORT = 3000;

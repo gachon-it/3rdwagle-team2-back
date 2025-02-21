@@ -4,24 +4,21 @@ const { Op } = require('sequelize');
 // ✅ 공구글 전체 조회
 const getAllGroupBuys = async (req, res) => {
     try {
-        // 모든 공동구매 글 조회 (최신순 정렬)
         const groupBuys = await GroupBuy.findAll({
             include: [
                 {
                     model: User,
-                    as: 'User',  // ✅ 공동구매 생성자의 정보
+                    as: 'User',
                     attributes: ['userId', 'userName', 'email']
                 }
             ],
-            order: [['created_at', 'DESC']] // 최신순 정렬
+            order: [['created_at', 'DESC']]
         });
 
-        // 조회된 데이터가 없을 경우
         if (!groupBuys.length) {
             return res.status(404).json({ message: '등록된 공동구매 글이 없습니다.' });
         }
 
-        // ✅ 응답 데이터 형식화
         const response = groupBuys.map(groupBuy => ({
             groupBuyId: groupBuy.groupBuyId,
             title: groupBuy.title,
@@ -32,7 +29,8 @@ const getAllGroupBuys = async (req, res) => {
             created_at: groupBuy.created_at,
             location: groupBuy.location,
             userId: groupBuy.User?.userId || null,
-            userName: groupBuy.User?.userName || null
+            userName: groupBuy.User?.userName || null,
+            image_url: groupBuy.image_url ? `http://localhost:3000${groupBuy.image_url}` : `http://localhost:3000/uploads/default.jpg` // ✅ 이미지 URL 반환
         }));
 
         return res.status(200).json(response);
@@ -46,28 +44,21 @@ const getGroupBuyDetail = async (req, res) => {
     try {
         const { groupBuyId } = req.params;
 
-        console.log(`🔍 요청된 groupBuyId: ${groupBuyId}`); // ✅ 요청된 groupBuyId 출력
-
-        // 🔥 GroupBuy 테이블의 데이터만 조회 (GroupBuyParticipants 제거)
         const groupBuyDetail = await GroupBuy.findOne({
             where: { groupBuyId },
             include: [
                 {
                     model: User,
-                    as: 'User',  // ✅ GroupBuy 생성자의 정보
+                    as: 'User',
                     attributes: ['userId', 'userName', 'email']
                 }
             ]
         });
 
-        console.log("🔍 groupBuyDetail 데이터 확인:", JSON.stringify(groupBuyDetail, null, 2)); // ✅ 조회된 데이터 출력
-
         if (!groupBuyDetail) {
-            console.log("❌ groupBuyId에 해당하는 공동구매 없음");
             return res.status(404).json({ message: '해당 공동구매를 찾을 수 없습니다.' });
         }
 
-        // ✅ MySQL의 `SELECT * FROM GroupBuy;` 결과와 동일하게 반환
         const response = {
             groupBuyId: groupBuyDetail.groupBuyId,
             title: groupBuyDetail.title,
@@ -77,11 +68,10 @@ const getGroupBuyDetail = async (req, res) => {
             status: groupBuyDetail.status === 1 ? '모집 중' : '종료',
             created_at: groupBuyDetail.created_at,
             location: groupBuyDetail.location,
-            userId: groupBuyDetail.User?.userId || null,  // ✅ User 정보가 없을 경우 null 반환
-            userName: groupBuyDetail.User?.userName || null
+            userId: groupBuyDetail.User?.userId || null,
+            userName: groupBuyDetail.User?.userName || null,
+            image_url: groupBuyDetail.image_url ? `http://localhost:3000${groupBuyDetail.image_url}` : `http://localhost:3000/uploads/default.jpg` // ✅ 이미지 URL 반환
         };
-
-        console.log("🔍 최종 반환 데이터:", JSON.stringify(response, null, 2)); // ✅ 최종 응답 데이터 출력
 
         return res.status(200).json(response);
     } catch (error) {
@@ -89,6 +79,7 @@ const getGroupBuyDetail = async (req, res) => {
         return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
 };
+
 // ✅ 공구 생성 (로그인 필요)
 const createGroupBuy = async (req, res) => {
     try {
