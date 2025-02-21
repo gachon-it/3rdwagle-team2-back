@@ -107,6 +107,80 @@ const deleteGroupBuy = async (req, res) => {
     }
 };
 
+// ✅ 공구 참여 (로그인 필요)
+const joinGroupBuy = async (req, res) => {
+    try {
+        const { groupBuyId } = req.params;
+        const userId = req.user.userId; // 🔥 토큰에서 추출한 유저 ID 사용
+
+        // 공구 조회
+        const groupBuy = await GroupBuy.findByPk(groupBuyId);
+        if (!groupBuy) {
+            return res.status(404).json({ message: '해당 공구를 찾을 수 없습니다.' });
+        }
+
+        // 현재 참여한 인원 수 확인
+        const currentParticipants = await GroupBuyParticipants.count({ where: { groupBuyId, status: 1 } });
+
+        // `max_people` 초과 방지
+        if (currentParticipants >= groupBuy.max_people) {
+            return res.status(400).json({ message: '해당 공구의 최대 인원을 초과하였습니다.' });
+        }
+
+        // 기존 참여 여부 확인
+        const existingParticipant = await GroupBuyParticipants.findOne({
+            where: { groupBuyId, userId }
+        });
+
+        if (existingParticipant) {
+            // 기존 참여 기록이 있지만 취소(`status: 0`) 상태일 경우 재참여 가능
+            if (existingParticipant.status === 0) {
+                await existingParticipant.update({ status: 1 });
+                return res.status(200).json({ message: '공구 참여가 다시 활성화되었습니다.' });
+            }
+            return res.status(400).json({ message: '이미 해당 공구에 참여하였습니다.' });
+        }
+
+        // 신규 참여
+        await GroupBuyParticipants.create({ groupBuyId, userId, status: 1 });
+
+        return res.status(201).json({ message: '공구 참여가 완료되었습니다.' });
+    } catch (error) {
+        console.error('❌ Error joining group buy:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+};
+
+// ✅ 공구 참여 취소 (로그인 필요)
+const cancelGroupBuy = async (req, res) => {
+    try {
+        const { groupBuyId } = req.params;
+        const userId = req.user.userId; // 🔥 토큰에서 추출한 유저 ID 사용
+
+        // 공구 참여 정보 조회
+        const participant = await GroupBuyParticipants.findOne({
+            where: { groupBuyId, userId }
+        });
+
+        if (!participant) {
+            return res.status(404).json({ message: '참여 기록이 없습니다.' });
+        }
+
+        // 이미 취소된 상태라면 다시 취소할 수 없음
+        if (participant.status === 0) {
+            return res.status(400).json({ message: '이미 취소된 공구 참여입니다.' });
+        }
+
+        // 참여 상태를 `0`으로 변경하여 취소 처리
+        await participant.update({ status: 0 });
+
+        return res.status(200).json({ message: '공구 참여가 취소되었습니다.' });
+    } catch (error) {
+        console.error('❌ Error canceling group buy:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+};
+
 module.exports = {
     getGroupBuyDetail,
     createGroupBuy,
