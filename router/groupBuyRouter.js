@@ -6,6 +6,7 @@ const {
     cancelGroupBuy,
     createGroupBuy,
     deleteGroupBuy,
+    searchGroupBuys
 } = require('../controller/groupBuyController');
 const authenticateToken = require('../middlewares/authenticateToken');
 
@@ -13,6 +14,9 @@ const router = express.Router();
 
 // ✅ 공구글 전체 조회 (모든 사용자 가능)
 router.get('/', getAllGroupBuys);
+
+// ✅ 공동구매 검색 (query 파라미터 사용)
+router.get('/search', searchGroupBuys);
 
 // ✅ 공구 상세 조회
 router.get('/:groupBuyId', getGroupBuyDetail);

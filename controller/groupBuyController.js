@@ -1,4 +1,5 @@
 const { sequelize, GroupBuy, GroupBuyParticipants, User } = require('../models');
+const { Op } = require('sequelize');
 
 // ✅ 공구글 전체 조회
 const getAllGroupBuys = async (req, res) => {
@@ -222,11 +223,74 @@ const cancelGroupBuy = async (req, res) => {
     }
 };
 
+const searchGroupBuys = async (req, res) => {
+    try {
+        const { query, order } = req.query;
+        let whereCondition = {}; // 기본 검색 조건
+
+        // 🔥 검색어가 있을 경우, 제목 또는 내용에서 검색 (COLLATE 추가)
+        if (query) {
+            whereCondition = {
+                [Op.or]: [
+                    sequelize.where(sequelize.col('title'), 'LIKE', sequelize.literal(`CONVERT('%${query}%' USING utf8mb4) COLLATE utf8mb4_general_ci`)),
+                    sequelize.where(sequelize.col('content'), 'LIKE', sequelize.literal(`CONVERT('%${query}%' USING utf8mb4) COLLATE utf8mb4_general_ci`))
+                ]
+            };
+        }
+        console.log(req.query);
+        // 🔥 정렬 조건 설정 (기본 최신순 정렬)
+        let orderOption = [['created_at', 'DESC']];
+        if (order === 'price_asc') orderOption = [['price_per_person', 'ASC']];
+        if (order === 'price_desc') orderOption = [['price_per_person', 'DESC']];
+
+        // 🔥 SQL 실행 로그 출력
+        console.log(`🔍 검색 조건:`, whereCondition);
+        console.log(`🔍 정렬 조건:`, orderOption);
+
+        // 🔍 검색된 공동구매 조회
+        const groupBuys = await GroupBuy.findAll({
+            where: whereCondition,
+            include: [
+                {
+                    model: User,
+                    as: 'User',
+                    attributes: ['userId', 'userName', 'email']
+                }
+            ],
+            order: orderOption
+        });
+
+        if (!groupBuys.length) {
+            return res.status(404).json({ message: '해당 공동구매를 찾을 수 없습니다.' });
+        }
+
+        // ✅ 응답 데이터 형식화
+        const response = groupBuys.map(groupBuy => ({
+            groupBuyId: groupBuy.groupBuyId,
+            title: groupBuy.title,
+            content: groupBuy.content,
+            max_people: groupBuy.max_people,
+            price_per_person: groupBuy.price_per_person,
+            status: groupBuy.status === 1 ? '모집 중' : '종료',
+            created_at: groupBuy.created_at,
+            location: groupBuy.location,
+            userId: groupBuy.User?.userId || null,
+            userName: groupBuy.User?.userName || null
+        }));
+
+        return res.status(200).json(response);
+    } catch (error) {
+        console.error('❌ Error searching group buys:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+};
+
 module.exports = {
     getAllGroupBuys,
     getGroupBuyDetail,
     createGroupBuy,
     deleteGroupBuy,
     joinGroupBuy,
-    cancelGroupBuy
+    cancelGroupBuy,
+    searchGroupBuys
 };
