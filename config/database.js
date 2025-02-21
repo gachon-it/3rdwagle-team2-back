@@ -1,0 +1,12 @@
+require('dotenv').config(); // ✅ 환경 변수 로드
+
+const { Sequelize } = require('sequelize');
+
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    dialect: process.env.DB_DIALECT,
+    port: process.env.DB_PORT || 3306, // ✅ 포트 추가
+    logging: false
+});
+
+module.exports = sequelize;
