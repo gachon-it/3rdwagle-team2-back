@@ -11,6 +11,10 @@ const ChatRoom = sequelize.define('ChatRoom', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    ownerId: {  // 생성자 정보 추가
+        type: DataTypes.STRING(40),
+        allowNull: false
+    },
     created_at: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
