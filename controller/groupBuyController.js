@@ -1,4 +1,4 @@
-const { sequelize, GroupBuy, User } = require('../models');
+const { sequelize, GroupBuy, GroupBuyParticipants, User } = require('../models');
 
 const getGroupBuyDetail = async (req, res) => {
     try {
@@ -47,5 +47,70 @@ const getGroupBuyDetail = async (req, res) => {
         return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
     }
 };
+// ✅ 공구 생성 (로그인 필요)
+const createGroupBuy = async (req, res) => {
+    try {
+        const { userId, title, content, max_people, price_per_person, location } = req.body;
 
-module.exports = { getGroupBuyDetail };
+        // 🔥 요청한 사용자 ID와 토큰에서 추출한 ID가 같은지 검증
+        if (req.user.userId !== userId) {
+            return res.status(403).json({ message: '본인의 계정으로만 공구를 생성할 수 있습니다.' });
+        }
+
+        // 유저가 존재하는지 확인
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 새 공구 생성
+        const newGroupBuy = await GroupBuy.create({
+            userId,
+            title,
+            content,
+            max_people,
+            price_per_person,
+            location
+        });
+
+        return res.status(201).json({ message: '공구가 성공적으로 생성되었습니다.', groupBuy: newGroupBuy });
+    } catch (error) {
+        console.error('❌ Error creating group buy:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+};
+
+// ✅ 공구 삭제 (로그인 필요, 본인이 생성한 공구만 삭제 가능)
+const deleteGroupBuy = async (req, res) => {
+    try {
+        const { groupBuyId } = req.params;
+        const loggedInUserId = req.user.userId; // 🔥 토큰에서 추출한 유저 ID 사용
+
+        // 공구 조회
+        const groupBuy = await GroupBuy.findByPk(groupBuyId);
+        if (!groupBuy) {
+            return res.status(404).json({ message: '해당 공구를 찾을 수 없습니다.' });
+        }
+
+        // 본인이 생성한 공구인지 확인
+        if (groupBuy.userId !== loggedInUserId) {
+            return res.status(403).json({ message: '본인이 생성한 공구만 삭제할 수 있습니다.' });
+        }
+
+        // 공구 삭제
+        await groupBuy.destroy();
+
+        return res.status(200).json({ message: '공구가 성공적으로 삭제되었습니다.' });
+    } catch (error) {
+        console.error('❌ Error deleting group buy:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+};
+
+module.exports = {
+    getGroupBuyDetail,
+    createGroupBuy,
+    deleteGroupBuy,
+    joinGroupBuy,
+    cancelGroupBuy
+};

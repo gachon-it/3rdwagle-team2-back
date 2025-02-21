@@ -5,7 +5,7 @@ const {
     cancelGroupBuy,
     createGroupBuy,
     deleteGroupBuy,
-    getGroupBuyParticipants
+    // getGroupBuyParticipants
 } = require('../controller/groupBuyController');
 const authenticateToken = require('../middlewares/authenticateToken');
 
@@ -14,17 +14,17 @@ const router = express.Router();
 // ✅ 공구 상세 조회
 router.get('/:groupBuyId', getGroupBuyDetail);
 
-// // ✅ 공구 생성 (로그인 필요)
-// router.post('/create', authenticateToken, createGroupBuy);
+// ✅ 공구 생성 (로그인 필요)
+router.post('/create', authenticateToken, createGroupBuy);
 
-// // ✅ 공구 삭제 (로그인 필요, 본인이 생성한 공구만 삭제 가능)
-// router.delete('/delete/:groupBuyId', authenticateToken, deleteGroupBuy);
+// ✅ 공구 삭제 (로그인 필요, 본인이 생성한 공구만 삭제 가능)
+router.delete('/delete/:groupBuyId', authenticateToken, deleteGroupBuy);
 
-// // ✅ 공구 참여 (로그인 필요)
-// router.post('/join/:groupBuyId', authenticateToken, joinGroupBuy);
+// ✅ 공구 참여 (로그인 필요)
+router.post('/join/:groupBuyId', authenticateToken, joinGroupBuy);
 
-// // ✅ 공구 참여 취소 (로그인 필요)
-// router.post('/cancel/:groupBuyId', authenticateToken, cancelGroupBuy);
+// ✅ 공구 참여 취소 (로그인 필요)
+router.post('/cancel/:groupBuyId', authenticateToken, cancelGroupBuy);
 
 // // ✅ 공구 참여자 목록 조회
 // router.get('/participants/:groupBuyId', getGroupBuyParticipants);

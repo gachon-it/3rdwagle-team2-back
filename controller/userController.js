@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const authenticateToken = require('../middlewares/authenticateToken'); // ✅ 미들웨어 사용
 
