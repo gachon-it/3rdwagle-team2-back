@@ -5,7 +5,6 @@ const {
     cancelGroupBuy,
     createGroupBuy,
     deleteGroupBuy,
-    // getGroupBuyParticipants
 } = require('../controller/groupBuyController');
 const authenticateToken = require('../middlewares/authenticateToken');
 
@@ -25,8 +24,5 @@ router.post('/join/:groupBuyId', authenticateToken, joinGroupBuy);
 
 // ✅ 공구 참여 취소 (로그인 필요)
 router.post('/cancel/:groupBuyId', authenticateToken, cancelGroupBuy);
-
-// // ✅ 공구 참여자 목록 조회
-// router.get('/participants/:groupBuyId', getGroupBuyParticipants);
 
 module.exports = router;
