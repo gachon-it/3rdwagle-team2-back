@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const db = require('./config/database');
 
 const userRouter = require('./router/userRouter');
+const chatOrderRouter = require('./router/chatOrderRouter');    //공동배달채팅
 
 const app = express();
 app.use(express.json());
@@ -22,3 +23,4 @@ app.listen(PORT, () => {
 app.use(bodyParser.json());
 
 app.use('/user', userRouter);
+app.use('/chatOrder', chatOrderRouter);     //공동배달 API
