@@ -1,5 +1,46 @@
 const { sequelize, GroupBuy, GroupBuyParticipants, User } = require('../models');
 
+// ✅ 공구글 전체 조회
+const getAllGroupBuys = async (req, res) => {
+    try {
+        // 모든 공동구매 글 조회 (최신순 정렬)
+        const groupBuys = await GroupBuy.findAll({
+            include: [
+                {
+                    model: User,
+                    as: 'User',  // ✅ 공동구매 생성자의 정보
+                    attributes: ['userId', 'userName', 'email']
+                }
+            ],
+            order: [['created_at', 'DESC']] // 최신순 정렬
+        });
+
+        // 조회된 데이터가 없을 경우
+        if (!groupBuys.length) {
+            return res.status(404).json({ message: '등록된 공동구매 글이 없습니다.' });
+        }
+
+        // ✅ 응답 데이터 형식화
+        const response = groupBuys.map(groupBuy => ({
+            groupBuyId: groupBuy.groupBuyId,
+            title: groupBuy.title,
+            content: groupBuy.content,
+            max_people: groupBuy.max_people,
+            price_per_person: groupBuy.price_per_person,
+            status: groupBuy.status === 1 ? '모집 중' : '종료',
+            created_at: groupBuy.created_at,
+            location: groupBuy.location,
+            userId: groupBuy.User?.userId || null,
+            userName: groupBuy.User?.userName || null
+        }));
+
+        return res.status(200).json(response);
+    } catch (error) {
+        console.error('❌ Error fetching all group buys:', error);
+        return res.status(500).json({ message: '서버 오류가 발생했습니다.' });
+    }
+};
+
 const getGroupBuyDetail = async (req, res) => {
     try {
         const { groupBuyId } = req.params;
@@ -182,6 +223,7 @@ const cancelGroupBuy = async (req, res) => {
 };
 
 module.exports = {
+    getAllGroupBuys,
     getGroupBuyDetail,
     createGroupBuy,
     deleteGroupBuy,

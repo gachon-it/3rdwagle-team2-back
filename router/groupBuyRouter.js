@@ -1,5 +1,6 @@
 const express = require('express');
 const {
+    getAllGroupBuys,
     getGroupBuyDetail,
     joinGroupBuy,
     cancelGroupBuy,
@@ -9,6 +10,9 @@ const {
 const authenticateToken = require('../middlewares/authenticateToken');
 
 const router = express.Router();
+
+// ✅ 공구글 전체 조회 (모든 사용자 가능)
+router.get('/', getAllGroupBuys);
 
 // ✅ 공구 상세 조회
 router.get('/:groupBuyId', getGroupBuyDetail);
