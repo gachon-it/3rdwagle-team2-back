@@ -30,7 +30,7 @@ const getAllGroupBuys = async (req, res) => {
             location: groupBuy.location,
             userId: groupBuy.User?.userId || null,
             userName: groupBuy.User?.userName || null,
-            image_url: groupBuy.image_url ? `http://localhost:3000${groupBuy.image_url}` : `http://localhost:3000/uploads/default.jpg` // ✅ 이미지 URL 반환
+            image_url: groupBuy.image_url ? `http://localhost:3000/${groupBuy.image_url}` : `http://localhost:3000/uploads/default.jpg` // ✅ 이미지 URL 반환
         }));
 
         return res.status(200).json(response);
